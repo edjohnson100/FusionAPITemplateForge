@@ -1,0 +1,13 @@
+{
+	"autodeskProduct":	"Fusion",
+	"type":	"script",
+	"id":	"{{GUID}}",
+	"author":	"{{AUTHOR}}",
+	"description":	{
+		"":	"{{DESCRIPTION}}"
+	},
+	"version":	"{{VERSION}}",
+	"supportedOS":	"windows|mac",
+	"editEnabled":	true,
+	"iconFilename":	"{{NAME}}Icon.svg"
+}

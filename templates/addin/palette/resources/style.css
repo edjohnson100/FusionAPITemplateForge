@@ -1,0 +1,442 @@
+/* ==========================================================================
+   Canonical theme variable schema (fleet-wide -- see Archive/!Fleet_Standardization_Prompt.md).
+   :root holds "Light" (the default). Every other theme is a
+   :root[data-theme="Name"] block overriding the same variable names.
+   Do not rename or drop variables here without checking script.js's
+   THEME_VAR_NAMES list stays in sync.
+   ========================================================================== */
+:root {
+  --font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-size-base: 12px;
+
+  --bg-body: #f5f5f7;
+  --text-main: #1d1d1f;
+  --text-sub: #6e6e73;
+  --border-color: #d2d2d7;
+
+  --row-bg: #ffffff;
+  --row-border: #e5e5ea;
+  --row-hover: #f0f0f2;
+
+  --input-bg: #ffffff;
+  --input-border: #c7c7cc;
+  --input-text: #1d1d1f;
+  --input-placeholder: #a1a1a6;
+  --toggle-bg: #c7c7cc;
+
+  --header-hover: #e8e8ed;
+  --tab-bg: #e8e8ed;
+  --tab-active-bg: #ffffff;
+  --tab-text: #6e6e73;
+  --tab-active-text: #1d1d1f;
+
+  --btn-primary: #0071e3;
+  --btn-primary-hover: #0077ed;
+  --btn-success: #34c759;
+  --btn-success-hover: #30b350;
+  --btn-secondary: #e8e8ed;
+  --btn-secondary-hover: #dcdce1;
+  --btn-secondary-text: #1d1d1f;
+
+  --status-success-bg: #e3f9e5;
+  --status-success-text: #1e7e34;
+  --status-error-bg: #fdecea;
+  --status-error-text: #c0392b;
+  --status-info-bg: #e8f0fe;
+  --status-info-text: #1a56db;
+}
+
+:root[data-theme="Dark"] {
+  --bg-body: #1e1e1e;
+  --text-main: #f2f2f2;
+  --text-sub: #a0a0a0;
+  --border-color: #3a3a3a;
+
+  --row-bg: #2a2a2a;
+  --row-border: #3a3a3a;
+  --row-hover: #333333;
+
+  --input-bg: #2a2a2a;
+  --input-border: #4a4a4a;
+  --input-text: #f2f2f2;
+  --input-placeholder: #7a7a7a;
+  --toggle-bg: #4a4a4a;
+
+  --header-hover: #333333;
+  --tab-bg: #2a2a2a;
+  --tab-active-bg: #1e1e1e;
+  --tab-text: #a0a0a0;
+  --tab-active-text: #f2f2f2;
+
+  --btn-primary: #0a84ff;
+  --btn-primary-hover: #3399ff;
+  --btn-success: #30d158;
+  --btn-success-hover: #4ade70;
+  --btn-secondary: #3a3a3a;
+  --btn-secondary-hover: #4a4a4a;
+  --btn-secondary-text: #f2f2f2;
+
+  --status-success-bg: #14351b;
+  --status-success-text: #6fe08a;
+  --status-error-bg: #3a1a17;
+  --status-error-text: #ff8a80;
+  --status-info-bg: #142a4a;
+  --status-info-text: #8ab4ff;
+}
+
+:root[data-theme="Midnight"] {
+  --bg-body: #0d1117;
+  --text-main: #e6edf3;
+  --text-sub: #8b949e;
+  --border-color: #21262d;
+
+  --row-bg: #161b22;
+  --row-border: #21262d;
+  --row-hover: #1c2129;
+
+  --input-bg: #0d1117;
+  --input-border: #30363d;
+  --input-text: #e6edf3;
+  --input-placeholder: #6e7681;
+  --toggle-bg: #30363d;
+
+  --header-hover: #1c2129;
+  --tab-bg: #161b22;
+  --tab-active-bg: #0d1117;
+  --tab-text: #8b949e;
+  --tab-active-text: #e6edf3;
+
+  --btn-primary: #388bfd;
+  --btn-primary-hover: #58a6ff;
+  --btn-success: #2ea043;
+  --btn-success-hover: #3fb950;
+  --btn-secondary: #21262d;
+  --btn-secondary-hover: #30363d;
+  --btn-secondary-text: #e6edf3;
+
+  --status-success-bg: #0f2818;
+  --status-success-text: #56d364;
+  --status-error-bg: #2d1214;
+  --status-error-text: #ff7b72;
+  --status-info-bg: #0c2d6b;
+  --status-info-text: #79c0ff;
+}
+
+:root[data-theme="Sandstone"] {
+  --bg-body: #f4ede2;
+  --text-main: #4a3f35;
+  --text-sub: #8a7b6c;
+  --border-color: #ddccb4;
+
+  --row-bg: #fbf7f0;
+  --row-border: #e6dac2;
+  --row-hover: #f0e6d3;
+
+  --input-bg: #fbf7f0;
+  --input-border: #d3c2a3;
+  --input-text: #4a3f35;
+  --input-placeholder: #b0a08a;
+  --toggle-bg: #d3c2a3;
+
+  --header-hover: #ecdfc7;
+  --tab-bg: #ecdfc7;
+  --tab-active-bg: #fbf7f0;
+  --tab-text: #8a7b6c;
+  --tab-active-text: #4a3f35;
+
+  --btn-primary: #b3652b;
+  --btn-primary-hover: #c67436;
+  --btn-success: #6a8a3f;
+  --btn-success-hover: #7a9c4a;
+  --btn-secondary: #ecdfc7;
+  --btn-secondary-hover: #e0d0b0;
+  --btn-secondary-text: #4a3f35;
+
+  --status-success-bg: #e6efd6;
+  --status-success-text: #4c6b2a;
+  --status-error-bg: #f7ddd4;
+  --status-error-text: #a8402a;
+  --status-info-bg: #e2e9f5;
+  --status-info-text: #35538a;
+}
+
+/* ==========================================================================
+   Structure
+   ========================================================================== */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--text-main);
+  background-color: var(--bg-body);
+}
+
+#app {
+  padding: 10px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.sub-header {
+  font-size: 0.85em;
+  color: var(--text-sub);
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 6px 8px;
+  border: none;
+  background: var(--tab-bg);
+  color: var(--tab-text);
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px 4px 0 0;
+}
+
+.tab-button.active {
+  background: var(--tab-active-bg);
+  color: var(--tab-active-text);
+  font-weight: 600;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+details.section {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: var(--row-bg);
+}
+
+details.section summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+details.section label {
+  display: block;
+  margin: 6px 0 2px;
+  font-size: 0.95em;
+}
+
+details.section input[type="number"],
+details.section input[type="text"],
+details.section select {
+  width: 100%;
+  padding: 4px 6px;
+  margin-top: 2px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--input-text);
+  border-radius: 4px;
+}
+
+details.section input[type="checkbox"] {
+  margin-right: 6px;
+}
+
+.field-error {
+  display: block;
+  color: var(--status-error-text);
+  font-size: 0.85em;
+  min-height: 1em;
+}
+
+.field-hint {
+  display: block;
+  color: var(--text-sub);
+  font-size: 0.92em;
+  margin-top: 4px;
+}
+
+.field-hint.highlight {
+  color: var(--status-info-text);
+}
+
+.config-active {
+  font-size: 0.92em;
+  margin-bottom: 6px;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.actions.secondary button {
+  background: var(--btn-secondary);
+  color: var(--btn-secondary-text);
+}
+
+.actions button,
+button[data-action],
+button[data-config-action] {
+  flex: 1;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 4px;
+  background: var(--btn-primary);
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.actions button:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
+}
+
+.actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button[data-action="generate"] {
+  background: var(--btn-success);
+}
+button[data-action="generate"]:hover:not(:disabled) {
+  background: var(--btn-success-hover);
+}
+
+.actions.secondary button,
+.clear-preview-button {
+  background: var(--btn-secondary);
+  color: var(--btn-secondary-text);
+}
+.actions.secondary button:hover:not(:disabled),
+.clear-preview-button:hover:not(:disabled) {
+  background: var(--btn-secondary-hover);
+}
+
+.notification {
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 0.92em;
+}
+.notification.success { background: var(--status-success-bg); color: var(--status-success-text); }
+.notification.error { background: var(--status-error-bg); color: var(--status-error-text); }
+.notification.info { background: var(--status-info-bg); color: var(--status-info-text); }
+.hidden { display: none !important; }
+
+.info-icon {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  margin-right: 4px;
+}
+.info-icon .tooltip {
+  display: none;
+  position: absolute;
+  bottom: 130%;
+  left: 0;
+  width: 220px;
+  padding: 6px 8px;
+  background: var(--row-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 4px;
+  font-size: 0.85em;
+  z-index: 20;
+}
+.info-icon:hover .tooltip,
+.info-icon:focus .tooltip,
+.info-icon:focus-visible .tooltip {
+  display: block;
+}
+
+.version-footer {
+  text-align: center;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* ==========================================================================
+   Modal (Promise-based confirm/prompt/picker -- see script.js. No native
+   window.confirm/prompt/alert anywhere in this palette.)
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--row-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 14px;
+  width: 90%;
+  max-width: 320px;
+}
+
+.modal-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.modal-body {
+  margin-bottom: 12px;
+  font-size: 0.95em;
+}
+
+.modal-body input,
+.modal-body select {
+  width: 100%;
+  padding: 5px 6px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--input-text);
+  border-radius: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.modal-actions button {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.modal-btn-cancel {
+  background: var(--btn-secondary);
+  color: var(--btn-secondary-text);
+}
+
+.modal-btn-confirm {
+  background: var(--btn-primary);
+  color: #fff;
+}

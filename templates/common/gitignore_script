@@ -1,0 +1,24 @@
+# ----------------------
+# Python & VS Code
+# ----------------------
+__pycache__/
+*.pyc
+.vscode/
+.venv/
+*.log
+
+# ----------------------
+# Operating System Junk
+# ----------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ----------------------
+# Autodesk Fusion Specifics
+# ----------------------
+*.manifest.bak
+*.lock

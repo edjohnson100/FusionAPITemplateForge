@@ -1,0 +1,14 @@
+{
+	"autodeskProduct":	"Fusion",
+	"type":	"addin",
+	"id":	"{{GUID}}",
+	"author":	"{{AUTHOR}}",
+	"description":	{
+		"":	"{{DESCRIPTION}}"
+	},
+	"version":	"{{VERSION}}",
+	"runOnStartup":	true,
+	"supportedOS":	"windows|mac",
+	"editEnabled":	true,
+	"iconFilename": "{{NAME}}AppIcon.png"
+}

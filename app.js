@@ -1,0 +1,275 @@
+(function () {
+    'use strict';
+
+    const TEMPLATES_ROOT = 'templates/';
+
+    const els = {
+        projectType: () => document.querySelector('input[name="projectType"]:checked').value,
+        tier: () => document.querySelector('input[name="tier"]:checked').value,
+        name: document.getElementById('input-name'),
+        nameRow: document.getElementById('name-row'),
+        author: document.getElementById('input-author'),
+        company: document.getElementById('input-company'),
+        companyRow: document.getElementById('company-row'),
+        description: document.getElementById('input-description'),
+        version: document.getElementById('input-version'),
+        license: document.getElementById('input-license'),
+        tierPanel: document.getElementById('tier-panel'),
+        tierNote: document.getElementById('tier-note'),
+        bundledNote: document.getElementById('bundled-note'),
+        fileTree: document.getElementById('file-tree'),
+        generateBtn: document.getElementById('generate-btn'),
+        nextStepsPanel: document.getElementById('next-steps-panel'),
+        nextStepsContent: document.getElementById('next-steps-content'),
+    };
+
+    const featureIds = ['configManager', 'groupedUndo', 'previewGenerate', 'toolClip', 'vscode', 'readme', 'claudeMd'];
+    const featureCheckbox = (id) => document.getElementById(`feat-${id}`);
+    const featureLabel = (id) => document.getElementById(`feat-${id}-label`);
+
+    function getState() {
+        const projectType = els.projectType();
+        const tier = els.tier();
+        const features = {};
+        featureIds.forEach((id) => { features[id] = featureCheckbox(id).checked; });
+        return {
+            projectType,
+            tier,
+            name: els.name.value.trim(),
+            author: els.author.value.trim(),
+            company: els.company.value.trim() || 'YourCompany',
+            description: els.description.value.trim() || 'TODO: describe what this does.',
+            version: els.version.value.trim() || '1.0.0.0',
+            license: els.license.value,
+            features,
+        };
+    }
+
+    function isValidName(name) {
+        return /^[A-Z][A-Za-z0-9]*$/.test(name);
+    }
+
+    // ------------------------------------------------------------------
+    // UI gating: project type / tier control which fields & checkboxes
+    // are relevant. Switching away silently unchecks/hides, never restores.
+    // ------------------------------------------------------------------
+    function updateGating() {
+        const projectType = els.projectType();
+        const tier = els.tier();
+        const isAddin = projectType === 'addin';
+        const isPaletteTier = isAddin && tier !== 'bare';
+
+        els.tierPanel.style.display = isAddin ? '' : 'none';
+        els.companyRow.style.display = isAddin ? '' : 'none';
+        els.tierNote.style.display = (isAddin && tier !== 'bare') ? '' : 'none';
+        els.bundledNote.style.display = isPaletteTier ? '' : 'none';
+
+        const paletteOnlyFeatures = ['configManager', 'groupedUndo', 'previewGenerate'];
+        paletteOnlyFeatures.forEach((id) => {
+            const cb = featureCheckbox(id);
+            const label = featureLabel(id);
+            if (!isPaletteTier) {
+                cb.checked = false;
+                cb.disabled = true;
+                label.classList.add('disabled');
+            } else {
+                cb.disabled = true; // bundled together for now -- see bundledNote
+                cb.checked = true;
+                label.classList.add('disabled');
+            }
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // File manifest: maps the selected options to {out, src, binary} entries.
+    // `src` is relative to templates/. Every text file gets the same
+    // placeholder substitution pass -- see substitute().
+    // ------------------------------------------------------------------
+    function computeFileList(s) {
+        const root = s.name || 'MyProject';
+        const files = [];
+        const add = (out, src, binary = false) => files.push({ out: `${root}/${out}`, src, binary });
+
+        if (s.projectType === 'script') {
+            add(`${root}.py`, 'script/ScriptName.py');
+            add(`${root}.manifest`, 'script/manifest.json');
+            add(`${root}Icon.svg`, 'script/ScriptIcon.svg', true);
+            add('.gitignore', 'common/gitignore_script');
+            add('.gitattributes', 'common/gitattributes');
+            if (s.features.vscode) add('.vscode/launch.json', 'common/vscode_launch.json');
+            if (s.license) add('LICENSE', `common/licenses/${s.license}.txt`);
+            if (s.features.readme) add('README.md', 'common/README_script.md');
+            if (s.features.claudeMd) add('CLAUDE.md', 'common/CLAUDE_script.md');
+            add('NEXT_STEPS.md', 'common/NEXT_STEPS_script.md');
+            return files;
+        }
+
+        // Add-in, all tiers
+        add(`${root}.py`, 'addin/AddInName.py');
+        add(`${root}.manifest`, 'addin/manifest.json');
+        add(`${root}AppIcon.png`, 'addin/icons/128x128.png', true);
+        add('config.py', 'addin/config.py');
+        add('lib/__init__.py', 'addin/lib/__init__.py');
+        add('lib/fusionAddInUtils/__init__.py', 'addin/lib/fusionAddInUtils/__init__.py');
+        add('lib/fusionAddInUtils/event_utils.py', 'addin/lib/fusionAddInUtils/event_utils.py');
+        add('lib/fusionAddInUtils/general_utils.py', 'addin/lib/fusionAddInUtils/general_utils.py');
+        ['16x16', '32x32', '64x64', '128x128', '256x256', '512x512', '1024x1024'].forEach((sz) => {
+            add(`resources/${sz}.png`, `addin/icons/${sz}.png`, true);
+        });
+        if (s.features.toolClip) add('resources/toolClip.png', 'common/toolClip.png', true);
+        if (s.features.vscode) add('.vscode/launch.json', 'common/vscode_launch.json');
+        add('.gitignore', 'common/gitignore_addin');
+        add('.gitattributes', 'common/gitattributes');
+        if (s.license) add('LICENSE', `common/licenses/${s.license}.txt`);
+        if (s.features.readme) add('README.md', 'common/README_addin.md');
+        add('NEXT_STEPS.md', 'common/NEXT_STEPS_addin.md');
+
+        if (s.tier === 'bare') {
+            add('commands/__init__.py', 'addin/bare/commands/__init__.py');
+            add('commands/ExampleCommand.py', 'addin/bare/commands/ExampleCommand.py');
+            if (s.features.claudeMd) add('CLAUDE.md', 'common/CLAUDE_addin_bare.md');
+        } else {
+            add('lib/appConfig.py', 'addin/lib/appConfig.py');
+            add('lib/configUtils.py', 'addin/lib/configUtils.py');
+            add('commands/__init__.py', 'addin/palette/commands/__init__.py');
+            add('commands/generation.py', 'addin/palette/commands/generation.py');
+            add('commands/PaletteCommand.py', 'addin/palette/commands/PaletteCommand.py');
+            add(`resources/${root}_Index.html`, 'addin/palette/resources/AddInName_Index.html');
+            add('resources/script.js', 'addin/palette/resources/script.js');
+            add('resources/style.css', 'addin/palette/resources/style.css');
+            add('resources/themes/Forest.theme.json', 'addin/palette/resources/themes/Forest.theme.json');
+            add('resources/themes/Ocean.theme.json', 'addin/palette/resources/themes/Ocean.theme.json');
+            add('commandConfig/config.ini', 'addin/palette/commandConfig/config.ini');
+            if (s.features.claudeMd) add('CLAUDE.md', 'common/CLAUDE_addin_palette.md');
+        }
+
+        return files;
+    }
+
+    function substitute(text, s, guid) {
+        const year = new Date().getFullYear();
+        return text
+            .replace(/\{\{NAME\}\}/g, s.name)
+            .replace(/\{\{AUTHOR\}\}/g, s.author || 'Unknown')
+            .replace(/\{\{COMPANY\}\}/g, s.company)
+            .replace(/\{\{DESCRIPTION\}\}/g, s.description)
+            .replace(/\{\{VERSION\}\}/g, s.version)
+            .replace(/\{\{GUID\}\}/g, guid)
+            .replace(/\{\{YEAR\}\}/g, String(year))
+            .replace(/AddInName/g, s.name || 'AddInName')
+            .replace(/YourCompany/g, s.company);
+    }
+
+    // ------------------------------------------------------------------
+    // Live file-tree preview
+    // ------------------------------------------------------------------
+    function renderTree(files) {
+        if (!files.length) {
+            els.fileTree.textContent = '(enter a name to preview)';
+            return;
+        }
+        const root = {};
+        files.forEach((f) => {
+            const parts = f.out.split('/');
+            let node = root;
+            parts.forEach((part, i) => {
+                if (i === parts.length - 1) {
+                    node[part] = null;
+                } else {
+                    node[part] = node[part] || {};
+                    node = node[part];
+                }
+            });
+        });
+
+        const lines = [];
+        function walk(node, prefix) {
+            const keys = Object.keys(node).sort((a, b) => {
+                const aDir = node[a] !== null, bDir = node[b] !== null;
+                if (aDir !== bDir) return aDir ? -1 : 1;
+                return a.localeCompare(b);
+            });
+            keys.forEach((key, i) => {
+                const isLast = i === keys.length - 1;
+                lines.push(prefix + (isLast ? '└── ' : '├── ') + key);
+                if (node[key] !== null) {
+                    walk(node[key], prefix + (isLast ? '    ' : '│   '));
+                }
+            });
+        }
+        walk(root, '');
+        els.fileTree.textContent = lines.join('\n');
+    }
+
+    function refreshPreview() {
+        const s = getState();
+        const nameOk = isValidName(s.name);
+        els.nameRow.classList.toggle('invalid', s.name.length > 0 && !nameOk);
+
+        const files = nameOk ? computeFileList(s) : [];
+        renderTree(files);
+
+        els.generateBtn.disabled = !nameOk;
+        els.generateBtn.textContent = nameOk ? `Generate ${s.name}.zip` : 'Enter a valid name to generate';
+    }
+
+    // ------------------------------------------------------------------
+    // Generate + download
+    // ------------------------------------------------------------------
+    async function generate() {
+        const s = getState();
+        if (!isValidName(s.name)) return;
+
+        els.generateBtn.disabled = true;
+        els.generateBtn.textContent = 'Generating...';
+
+        try {
+            const guid = crypto.randomUUID();
+            const files = computeFileList(s);
+            const zip = new JSZip();
+
+            for (const f of files) {
+                const url = TEMPLATES_ROOT + f.src;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
+                if (f.binary) {
+                    zip.file(f.out, await res.arrayBuffer());
+                } else {
+                    const text = substitute(await res.text(), s, guid);
+                    zip.file(f.out, text);
+                }
+            }
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${s.name}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            const nextStepsSrc = s.projectType === 'script' ? 'common/NEXT_STEPS_script.md' : 'common/NEXT_STEPS_addin.md';
+            const nextStepsRes = await fetch(TEMPLATES_ROOT + nextStepsSrc);
+            const nextStepsText = substitute(await nextStepsRes.text(), s, guid);
+            els.nextStepsContent.textContent = nextStepsText;
+            els.nextStepsPanel.classList.add('visible');
+        } catch (err) {
+            console.error(err);
+            alert(`Something went wrong generating the zip: ${err.message}`);
+        } finally {
+            refreshPreview();
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Wire up events
+    // ------------------------------------------------------------------
+    document.querySelectorAll('input[name="projectType"]').forEach((el) => el.addEventListener('change', () => { updateGating(); refreshPreview(); }));
+    document.querySelectorAll('input[name="tier"]').forEach((el) => el.addEventListener('change', () => { updateGating(); refreshPreview(); }));
+    [els.name, els.author, els.company, els.description, els.version, els.license].forEach((el) => el.addEventListener('input', refreshPreview));
+    featureIds.forEach((id) => featureCheckbox(id).addEventListener('change', refreshPreview));
+    els.generateBtn.addEventListener('click', generate);
+
+    updateGating();
+    refreshPreview();
+})();

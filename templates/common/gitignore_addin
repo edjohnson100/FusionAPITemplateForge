@@ -1,0 +1,71 @@
+# ----------------------
+# 1. Python & VS Code (The Basics)
+# ----------------------
+__pycache__/
+*.pyc
+.vscode/
+.venv/
+*.log
+
+# ----------------------
+# 2. Operating System Junk
+# ----------------------
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ----------------------
+# 3. Autodesk Fusion 360 Specifics
+# ----------------------
+# Fusion creates these backup files when you edit a manifest in the UI
+*.manifest.bak
+# Lock files sometimes created during runtime
+*.lock
+
+# ----------------------
+# 4. Per-Machine Add-in State
+# ----------------------
+# Palette geometry + active theme choice, and any custom/imported themes --
+# both per-machine, not deliberately shared content (unlike commandConfig/
+# named presets, which ARE tracked).
+config.json
+imported_themes.json
+
+# Live palette config-manager state (which named preset is active, common
+# panel values if you add one) -- mutates on every edit, falls back to
+# hardcoded defaults in commands/PaletteCommand.py when absent.
+commandConfig/ui_defaults.json
+commandConfig/common.json
+commandConfig/presets/
+
+# ----------------------
+# 5. Security & Local Settings
+# ----------------------
+.env
+.env.*
+!.env.example
+
+# ----------------------
+# 6. Claude Code (AI assistant local files)
+# ----------------------
+.claude/
+CLAUDE.md
+
+# ----------------------
+# 7. Other Misc Files
+# ----------------------
+Archive/
+
+# Ignore compiled binaries just in case they slip into other folders
+*.exe
+*.msi
+*.pkg
+*.dmg
+*.zip
+AGENTS.md

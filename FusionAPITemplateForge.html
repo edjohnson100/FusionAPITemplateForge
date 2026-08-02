@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fusion API Template Forge</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="app.css">
 </head>
 <body>
     <div class="header">
@@ -13,6 +14,119 @@
         </div>
     </div>
 
-    <p>Under construction &mdash; check back soon.</p>
+    <div class="layout">
+        <div class="left">
+            <div class="panel">
+                <h3>Project</h3>
+
+                <div class="field-row">
+                    <label>Project Type</label>
+                    <div class="radio-group" id="projectType-group">
+                        <label><input type="radio" name="projectType" value="script"> Script <span class="option-sub">One file, runs once, no persistent UI</span></label>
+                        <label><input type="radio" name="projectType" value="addin" checked> Add-in <span class="option-sub">Loads with Fusion, can add toolbar buttons and UI</span></label>
+                    </div>
+                </div>
+
+                <div class="field-row" id="name-row">
+                    <label for="input-name">Name</label>
+                    <input type="text" id="input-name" placeholder="MyAddin" autocomplete="off">
+                    <span class="hint">PascalCase, no spaces &mdash; becomes the folder/file/manifest name.</span>
+                    <span class="error-text">Name must be PascalCase with no spaces or special characters (e.g. "MyAddin").</span>
+                </div>
+
+                <div class="field-row">
+                    <label for="input-author">Author</label>
+                    <input type="text" id="input-author" placeholder="Your Name" autocomplete="off">
+                </div>
+
+                <div class="field-row" id="company-row">
+                    <label for="input-company">Company Tag</label>
+                    <input type="text" id="input-company" placeholder="YourCompany" autocomplete="off">
+                    <span class="hint">Used to build unique internal IDs. Add-ins only.</span>
+                </div>
+
+                <div class="field-row">
+                    <label for="input-description">Short Description</label>
+                    <input type="text" id="input-description" placeholder="What does this do?" autocomplete="off">
+                </div>
+
+                <div class="field-row">
+                    <label for="input-version">Initial Version</label>
+                    <input type="text" id="input-version" value="1.0.0.0" autocomplete="off">
+                </div>
+
+                <div class="field-row">
+                    <label for="input-license">License</label>
+                    <select id="input-license">
+                        <option value="" selected>None</option>
+                        <option value="MIT">MIT</option>
+                        <option value="Apache-2.0">Apache-2.0</option>
+                        <option value="CC-BY-NC-SA-4.0">CC BY-NC-SA 4.0</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="panel" id="tier-panel">
+                <h3>Add-in Tier</h3>
+                <div class="radio-group" id="tier-group">
+                    <label>
+                        <input type="radio" name="tier" value="bare" checked>
+                        <span><span class="option-title">Bare Add-in</span><span class="option-sub">Command + manifest, no palette UI</span></span>
+                    </label>
+                    <label>
+                        <input type="radio" name="tier" value="palette">
+                        <span><span class="option-title">Add-in + Persistent HTML Palette</span><span class="option-sub">Dockable palette UI, no theming support</span></span>
+                    </label>
+                    <label>
+                        <input type="radio" name="tier" value="theme">
+                        <span><span class="option-title">Add-in + Palette + Theme Designer Pro</span><span class="option-sub">Full theme system (Themes tab, import/export)</span></span>
+                    </label>
+                </div>
+                <div class="note" id="tier-note" style="display:none;">
+                    The "Palette" and "Theme Designer Pro" tiers currently generate the same output &mdash; a stripped-down palette without theming is planned but not built yet, so Theme Designer Pro support is included either way.
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>Features</h3>
+                <div class="checkbox-group">
+                    <label id="feat-configManager-label"><input type="checkbox" id="feat-configManager" checked><span><span class="option-title">Config manager</span><span class="option-sub">Named presets: Save As / Load / Delete / Factory Reset</span></span></label>
+                    <label id="feat-groupedUndo-label"><input type="checkbox" id="feat-groupedUndo" checked><span><span class="option-title">Grouped-undo helper</span><span class="option-sub">Bundle multiple API calls into one Undo entry</span></span></label>
+                    <label id="feat-previewGenerate-label"><input type="checkbox" id="feat-previewGenerate" checked><span><span class="option-title">Preview / Generate / Clear Preview skeleton</span><span class="option-sub">Action-button pattern for geometry-building add-ins</span></span></label>
+                    <label id="feat-toolClip-label"><input type="checkbox" id="feat-toolClip" checked><span><span class="option-title">toolClip.png stub</span><span class="option-sub">Placeholder hover preview image</span></span></label>
+                    <label id="feat-vscode-label"><input type="checkbox" id="feat-vscode" checked><span><span class="option-title">.vscode launch config</span><span class="option-sub">Python: Attach debug configuration</span></span></label>
+                    <label id="feat-readme-label"><input type="checkbox" id="feat-readme" checked><span><span class="option-title">README.md</span><span class="option-sub">Install steps scaffold</span></span></label>
+                    <label id="feat-claudeMd-label"><input type="checkbox" id="feat-claudeMd"><span><span class="option-title">CLAUDE.md</span><span class="option-sub">Project instructions for Claude Code users</span></span></label>
+                </div>
+                <div class="note" id="bundled-note" style="display:none;">
+                    Config manager, grouped-undo, and Preview/Generate/Clear Preview currently ship bundled together as one palette implementation &mdash; per-feature code stripping is planned but not built yet.
+                </div>
+            </div>
+        </div>
+
+        <div class="right">
+            <div class="panel">
+                <h3>Preview</h3>
+                <div id="file-tree"></div>
+            </div>
+
+            <div class="panel">
+                <button class="btn" id="generate-btn" disabled>Enter a name to generate</button>
+            </div>
+
+            <div class="panel" id="next-steps-panel">
+                <h3>Next Steps</h3>
+                <div id="next-steps-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="field-hint version-footer">
+        Fusion API Template Forge<br>
+        A companion tool to <a href="https://github.com/edjohnson100/ThemeDesigner" target="_blank" rel="noopener">Theme Designer Pro</a>
+    </div>
+
+    <script src="lib/jszip.min.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
