@@ -34,28 +34,47 @@ Since there's no automated test suite, manually exercise the changed inputs and 
 - `config.py` holds add-in-wide constants: `DEBUG`, `ADDIN_NAME` (folder-derived), `COMPANY_NAME`, workspace/panel IDs, `PALETTE_ID`/`CMD_ID`, and `ADDIN_VERSION` (read from the `.manifest` file at import time — never hardcode a version string elsewhere, this is the single source of truth).
 
 ### `commands/PaletteCommand.py` — the palette
-Everything palette-related lives in this one file: lifecycle (`start()`/`stop()`, `open_palette()`), the Python↔HTML bridge (`PaletteHtmlEventHandler`), the config manager (named-preset Save As/Load/Delete/Update Current/Factory Reset), theme persistence, and the grouped-undo helper.
+Everything palette-related lives in this one file: lifecycle (`start()`/`stop()`, `open_palette()`) and the Python↔HTML bridge (`PaletteHtmlEventHandler`), plus whichever of the config manager, theme persistence, and grouped-undo helper were included when this project was generated (see below for which apply here).
 
 - **Python ↔ HTML bridge**: HTML → Python via `window.adsk.fusionSendData('message', JSON.stringify({action, ...}))` in `script.js`'s `sendToFusion()`, routed through `PaletteHtmlEventHandler.notify()`, which parses the JSON and dispatches on the `action` field. Python → HTML via `palette.sendInfoToHTML(action, jsonString)`, received by `window.fusionJavaScriptHandler.handle(action, data)` in `script.js`.
 - **Startup data request pattern**: `script.js` requests its initial state on load (`get_defaults` action) and **must** wrap that first send in a retry loop — `window.adsk` is not guaranteed to exist the instant the script runs, and a single unconditional send can silently no-op forever if the bridge isn't ready yet. This exact bug has shipped in this fleet before (see `Archive/!Dev_Notes.md` conventions in sibling repos) — don't remove the retry loop when refactoring startup.
+<!-- FORGE:IF groupedUndo -->
 - **Grouped Undo**: Fusion has no Revit-style `Design.startTransactionGroup()`/`assimilate()` API for scripts/add-ins. The only documented way to bundle several API calls into one Undo entry outside of a command dialog is to run them from a headless command's `execute` event handler. `_run_grouped(work, name)` stashes a callable and `.execute()`s a hidden, never-shown `UNDO_GROUP_CMD_ID` command definition (registered in `start()`) to get this. Use it for any handler that calls multiple `adsk.fusion` mutation APIs in a row (preview/generate-style actions), not for read-only or single-call handlers.
+<!-- FORGE:ENDIF -->
+<!-- FORGE:IF configManager -->
 - **Config manager**: named presets live as individual JSON files under `commandConfig/presets/main/<name>.json` (tracked in git — these are deliberately-saved, shareable content, unlike the gitignored live/per-machine state below). `commandConfig/ui_defaults.json` remembers which preset is currently active per tab; `commandConfig/config.ini` holds the toolbar button's promoted state. Both of the latter, plus `commandConfig/presets/`, are gitignored (see `.gitignore`) since they mutate on every edit rather than being deliberately saved content.
+<!-- FORGE:ENDIF -->
+<!-- FORGE:IF previewGenerate -->
 - **Preview/Generate/Clear Preview**: the Main tab ships `Update Preview`/`Generate`/`Clear Preview` action buttons wired through the grouped-undo helper, calling a stub `commands/generation.py::create_and_build(form)`. Replace that stub with real `adsk.fusion` geometry construction when you build the add-in's actual feature — keep the preview/generate/clear-preview *shape* (build a not-yet-finalized "preview" component, track it, let Generate finalize or Clear Preview delete it) since it's the established UX pattern across this fleet, even if you don't need every part of it.
+<!-- FORGE:ENDIF -->
 
+<!-- FORGE:IF themeDesigner -->
 ### Theming
 `resources/style.css` follows this fleet's "Theme Designer Pro" CSS-variable standard: every themeable value is a `var(--name)` custom property, `:root` holds the default ("Light") values, and `:root[data-theme="Name"]` blocks (`Dark`, `Midnight`, `Sandstone`) override them. Switching is `document.documentElement.setAttribute('data-theme', name)`/`removeAttribute` (must target `<html>`, not `<body>`).
 
 - Host-side persistence: `config.json` (gitignored) remembers the active theme's name plus `fontFamily`/`fontSize`; `imported_themes.json` (gitignored) holds every theme the user has ever imported (`{themeId: varsDict}`), so switching back to a previously-imported theme still works after a restart.
 - Users can import a `.theme.json` (`{id, vars, fontFamily, fontSize}`) or a full `style.css` bundle (multiple themes at once, parsed client-side via `parseStyleCSS()`/round-tripped via `generateFullCSS()`) — see `resources/script.js`. Sample theme files ship in `resources/themes/`.
 - Font Family/Base Font Size are edited independently of which theme is selected and apply on top of any of them via a separate `#font-overrides` `<style>` tag — don't bake font settings into a theme's own `vars`, that causes CSS-specificity fights with `:root[data-theme="X"]` on import (a bug this fleet has hit before).
+<!-- FORGE:ENDIF -->
 - Never use `localStorage` for durable palette state — all of it is Python-owned JSON pushed via a `set_state` message, so it survives a browser-cache clear inside Fusion's embedded webview and stays consistent across the Python↔HTML bridge.
 
 ## Palette layout (structural, fleet-wide)
 
-The palette starts with exactly **two tabs**: **Main** (the add-in's actual feature — currently a single example field, replace it) and **Themes**. Structure, sourced from `Archive/!Fleet_Standardization_Prompt.md` (the fleet-wide UI standard doc — read it before restructuring the palette):
+<!-- FORGE:IF themeDesigner -->
+The palette starts with exactly **two tabs**: **Main** (the add-in's actual feature — currently a single example field, replace it) and **Themes**.
+<!-- FORGE:ELSE -->
+The palette starts with a single **Main** tab (the add-in's actual feature — currently a single example field, replace it). There's no Themes tab in this generated project since Theme Designer Pro support wasn't included.
+<!-- FORGE:ENDIF -->
+Structure, sourced from `Archive/!Fleet_Standardization_Prompt.md` (the fleet-wide UI standard doc — read it before restructuring the palette):
 
+<!-- FORGE:IF themeDesigner -->
 - **Header**: a `.header` flex row — title (`<h2>`) + `#versionTag` stacked left, the theme `<select id="theme.name">` on the right, vertically centered with the title block.
+<!-- FORGE:ELSE -->
+- **Header**: a `.header` flex row — title (`<h2>`) + `#versionTag` stacked left, vertically centered with the title block.
+<!-- FORGE:ENDIF -->
+<!-- FORGE:IF themeDesigner -->
 - **Themes tab**: plural "Themes", one collapsible `<details class="section">` containing Font Family/Base Font Size selects, JSON theme import/export, CSS-bundle import/export, Remove Selected Theme, and Factory Reset Themes.
+<!-- FORGE:ENDIF -->
 - **Footer**: a single `.field-hint.version-footer` div (two centered lines: add-in name, then `vX.Y.Z, Month Year`) at the very end of `#app`, outside every `.tab-panel`, so it's visible regardless of active tab. Version is sourced from `config.ADDIN_VERSION` (manifest-read), never hardcoded.
 - **Common Settings**: not present by default — only add a `<details class="section"><summary>...</summary>` collapsible above the tab bar if you actually introduce fields shared across multiple tabs. Don't invent one just to have one.
 
