@@ -2,6 +2,8 @@
     'use strict';
 
     const TEMPLATES_ROOT = 'templates/';
+    const APP_VERSION = '1.1.0';
+    const APP_RELEASE_DATE = 'August 2026';
 
     const els = {
         projectType: () => document.querySelector('input[name="projectType"]:checked').value,
@@ -21,6 +23,8 @@
         generateBtn: document.getElementById('generate-btn'),
         nextStepsPanel: document.getElementById('next-steps-panel'),
         nextStepsContent: document.getElementById('next-steps-content'),
+        themeSelect: document.getElementById('app-theme-select'),
+        versionLine: document.getElementById('app-version-line'),
     };
 
     const featureIds = ['configManager', 'groupedUndo', 'previewGenerate', 'toolClip', 'vscode', 'readme', 'claudeMd'];
@@ -88,6 +92,19 @@
             groupedUndoLabel.classList.add('disabled');
         }
         els.bundledNote.style.display = (isPaletteTier && previewGenerateCb.checked) ? '' : 'none';
+
+        // Scripts don't register a command button, so there's nothing for a
+        // toolClip hover-preview image to attach to.
+        const toolClipCb = featureCheckbox('toolClip');
+        const toolClipLabel = featureLabel('toolClip');
+        if (projectType === 'script') {
+            toolClipCb.checked = false;
+            toolClipCb.disabled = true;
+            toolClipLabel.classList.add('disabled');
+        } else {
+            toolClipCb.disabled = false;
+            toolClipLabel.classList.remove('disabled');
+        }
     }
 
     // ------------------------------------------------------------------
@@ -316,6 +333,33 @@
     }
 
     // ------------------------------------------------------------------
+    // This page's own theming -- a live demo of the same CSS-variable /
+    // data-theme system Theme Designer Pro and its generated palettes use.
+    // Plain client-side localStorage here is fine (unlike generated
+    // add-ins, there's no Python-owned state to stay in sync with).
+    // ------------------------------------------------------------------
+    const THEME_STORAGE_KEY = 'forge-app-theme';
+
+    function applyAppTheme(name) {
+        if (name) {
+            document.documentElement.setAttribute('data-theme', name);
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+        els.themeSelect.value = name || '';
+    }
+
+    function initAppTheme() {
+        const saved = localStorage.getItem(THEME_STORAGE_KEY) || '';
+        applyAppTheme(saved);
+        els.themeSelect.addEventListener('change', () => {
+            const name = els.themeSelect.value;
+            applyAppTheme(name);
+            localStorage.setItem(THEME_STORAGE_KEY, name);
+        });
+    }
+
+    // ------------------------------------------------------------------
     // Wire up events
     // ------------------------------------------------------------------
     document.querySelectorAll('input[name="projectType"]').forEach((el) => el.addEventListener('change', () => { updateGating(); refreshPreview(); }));
@@ -324,6 +368,8 @@
     featureIds.forEach((id) => featureCheckbox(id).addEventListener('change', () => { updateGating(); refreshPreview(); }));
     els.generateBtn.addEventListener('click', generate);
 
+    initAppTheme();
+    els.versionLine.textContent = `v${APP_VERSION}, ${APP_RELEASE_DATE}`;
     updateGating();
     refreshPreview();
 })();

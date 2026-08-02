@@ -10,12 +10,22 @@ body {
 .header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
     margin-bottom: 20px;
 }
 
 .header h2 {
     margin: 0;
+}
+
+#app-theme-select {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--input-text);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 0.9em;
 }
 
 .layout {
