@@ -82,9 +82,7 @@
                         <span><span class="option-title">Add-in + Palette + Theme Designer Pro</span><span class="option-sub">Full theme system (Themes tab, import/export)</span></span>
                     </label>
                 </div>
-                <div class="note" id="tier-note" style="display:none;">
-                    The "Palette" and "Theme Designer Pro" tiers currently generate the same output &mdash; a stripped-down palette without theming is planned but not built yet, so Theme Designer Pro support is included either way.
-                </div>
+                <div class="note" id="tier-note" style="display:none;"></div>
             </div>
 
             <div class="panel">
@@ -99,7 +97,7 @@
                     <label id="feat-claudeMd-label"><input type="checkbox" id="feat-claudeMd"><span><span class="option-title">CLAUDE.md</span><span class="option-sub">Project instructions for Claude Code users</span></span></label>
                 </div>
                 <div class="note" id="bundled-note" style="display:none;">
-                    Config manager, grouped-undo, and Preview/Generate/Clear Preview currently ship bundled together as one palette implementation &mdash; per-feature code stripping is planned but not built yet.
+                    Preview/Generate/Clear Preview calls the grouped-undo helper internally, so grouped-undo is locked on while it's checked.
                 </div>
             </div>
         </div>

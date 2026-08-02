@@ -61,8 +61,7 @@
 
         els.tierPanel.style.display = isAddin ? '' : 'none';
         els.companyRow.style.display = isAddin ? '' : 'none';
-        els.tierNote.style.display = (isAddin && tier !== 'bare') ? '' : 'none';
-        els.bundledNote.style.display = isPaletteTier ? '' : 'none';
+        els.tierNote.style.display = 'none';
 
         const paletteOnlyFeatures = ['configManager', 'groupedUndo', 'previewGenerate'];
         paletteOnlyFeatures.forEach((id) => {
@@ -73,11 +72,22 @@
                 cb.disabled = true;
                 label.classList.add('disabled');
             } else {
-                cb.disabled = true; // bundled together for now -- see bundledNote
-                cb.checked = true;
-                label.classList.add('disabled');
+                cb.disabled = false;
+                label.classList.remove('disabled');
             }
         });
+
+        // previewGenerate's Update Preview/Generate handlers call _run_grouped(),
+        // so it can't be included without groupedUndo -- force the dependency.
+        const previewGenerateCb = featureCheckbox('previewGenerate');
+        const groupedUndoCb = featureCheckbox('groupedUndo');
+        const groupedUndoLabel = featureLabel('groupedUndo');
+        if (isPaletteTier && previewGenerateCb.checked) {
+            groupedUndoCb.checked = true;
+            groupedUndoCb.disabled = true;
+            groupedUndoLabel.classList.add('disabled');
+        }
+        els.bundledNote.style.display = (isPaletteTier && previewGenerateCb.checked) ? '' : 'none';
     }
 
     // ------------------------------------------------------------------
@@ -132,18 +142,61 @@
             add('lib/appConfig.py', 'addin/lib/appConfig.py');
             add('lib/configUtils.py', 'addin/lib/configUtils.py');
             add('commands/__init__.py', 'addin/palette/commands/__init__.py');
-            add('commands/generation.py', 'addin/palette/commands/generation.py');
+            if (s.features.previewGenerate) add('commands/generation.py', 'addin/palette/commands/generation.py');
             add('commands/PaletteCommand.py', 'addin/palette/commands/PaletteCommand.py');
             add(`resources/${root}_Index.html`, 'addin/palette/resources/AddInName_Index.html');
             add('resources/script.js', 'addin/palette/resources/script.js');
             add('resources/style.css', 'addin/palette/resources/style.css');
-            add('resources/themes/Forest.theme.json', 'addin/palette/resources/themes/Forest.theme.json');
-            add('resources/themes/Ocean.theme.json', 'addin/palette/resources/themes/Ocean.theme.json');
+            if (s.tier === 'theme') {
+                add('resources/themes/Forest.theme.json', 'addin/palette/resources/themes/Forest.theme.json');
+                add('resources/themes/Ocean.theme.json', 'addin/palette/resources/themes/Ocean.theme.json');
+            }
             add('commandConfig/config.ini', 'addin/palette/commandConfig/config.ini');
             if (s.features.claudeMd) add('CLAUDE.md', 'common/CLAUDE_addin_palette.md');
         }
 
         return files;
+    }
+
+    // ------------------------------------------------------------------
+    // FORGE:IF / FORGE:ELSE / FORGE:ENDIF marker stripping. Comment-syntax
+    // agnostic (works whether the marker sits in a #, //, <!-- --> or /* */
+    // comment) since it just regexes for the marker text on each line.
+    // Supports nesting via a stack, though the templates don't currently
+    // nest markers.
+    // ------------------------------------------------------------------
+    function stripForgeMarkers(text, flags) {
+        const lines = text.split('\n');
+        const out = [];
+        const stack = [];
+        for (const line of lines) {
+            const ifMatch = line.match(/FORGE:IF\s+(\w+)/);
+            if (ifMatch) {
+                stack.push({ branch: 'then', flagVal: !!flags[ifMatch[1]] });
+                continue;
+            }
+            if (/FORGE:ELSE\b/.test(line)) {
+                const top = stack[stack.length - 1];
+                if (top) top.branch = 'else';
+                continue;
+            }
+            if (/FORGE:ENDIF\b/.test(line)) {
+                stack.pop();
+                continue;
+            }
+            const keep = stack.every((f) => (f.branch === 'then' ? f.flagVal : !f.flagVal));
+            if (keep) out.push(line);
+        }
+        return out.join('\n');
+    }
+
+    function getFeatureFlags(s) {
+        return {
+            themeDesigner: s.tier === 'theme',
+            configManager: s.features.configManager,
+            groupedUndo: s.features.groupedUndo,
+            previewGenerate: s.features.previewGenerate,
+        };
     }
 
     function substitute(text, s, guid) {
@@ -225,6 +278,7 @@
 
         try {
             const guid = crypto.randomUUID();
+            const flags = getFeatureFlags(s);
             const files = computeFileList(s);
             const zip = new JSZip();
 
@@ -235,7 +289,7 @@
                 if (f.binary) {
                     zip.file(f.out, await res.arrayBuffer());
                 } else {
-                    const text = substitute(await res.text(), s, guid);
+                    const text = substitute(stripForgeMarkers(await res.text(), flags), s, guid);
                     zip.file(f.out, text);
                 }
             }
@@ -267,7 +321,7 @@
     document.querySelectorAll('input[name="projectType"]').forEach((el) => el.addEventListener('change', () => { updateGating(); refreshPreview(); }));
     document.querySelectorAll('input[name="tier"]').forEach((el) => el.addEventListener('change', () => { updateGating(); refreshPreview(); }));
     [els.name, els.author, els.company, els.description, els.version, els.license].forEach((el) => el.addEventListener('input', refreshPreview));
-    featureIds.forEach((id) => featureCheckbox(id).addEventListener('change', refreshPreview));
+    featureIds.forEach((id) => featureCheckbox(id).addEventListener('change', () => { updateGating(); refreshPreview(); }));
     els.generateBtn.addEventListener('click', generate);
 
     updateGating();

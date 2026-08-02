@@ -17,7 +17,9 @@ from .. import config
 from ..lib import fusionAddInUtils as futil
 from ..lib import appConfig
 from ..lib import configUtils
+# FORGE:IF previewGenerate
 from . import generation
+# FORGE:ENDIF
 
 app = adsk.core.Application.get()
 ui = app.userInterface
@@ -28,7 +30,9 @@ COMMAND_BESIDE_ID = config.COMMAND_BESIDE_ID
 
 RESOURCES_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'resources')
 ICON_FOLDER = os.path.join(RESOURCES_FOLDER, '')
+# FORGE:IF themeDesigner
 THEMES_FOLDER = os.path.join(RESOURCES_FOLDER, 'themes')
+# FORGE:ENDIF
 
 CONFIG_FOLDER_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'commandConfig')
 UI_DEFAULTS_CONFIG_PATH = os.path.join(CONFIG_FOLDER_PATH, 'ui_defaults.json')
@@ -109,6 +113,7 @@ def _save_palette_geometry(palette: adsk.core.Palette):
         futil.log(f'{config.CMD_NAME} failed to save palette geometry:\n{traceback.format_exc()}')
 
 
+# FORGE:IF themeDesigner
 # ------------------------------------------------------------------------------
 # Theme persistence (config.json for the active choice, imported_themes.json
 # for every theme ever imported -- see lib/appConfig.py and CLAUDE.md).
@@ -140,6 +145,7 @@ def _save_theme(form: dict):
         'fontFamily': form.get('fontFamily', DEFAULT_THEME['fontFamily']),
         'fontSize': form.get('fontSize', DEFAULT_THEME['fontSize']),
     }})
+# FORGE:ENDIF
 
 
 # ------------------------------------------------------------------------------
@@ -161,10 +167,12 @@ def start():
     control = panel.controls.addCommand(cmd_def, COMMAND_BESIDE_ID, False)
     control.isPromoted = addinConfig['UI'].getboolean('is_promoted')
 
+    # FORGE:IF groupedUndo
     # Hidden command definition used solely as a grouped-undo runner -- see
     # _run_grouped() below for why this exists.
     undo_group_cmd_def = ui.commandDefinitions.addButtonDefinition(config.UNDO_GROUP_CMD_ID, f'{config.ADDIN_NAME} Undo Group Runner', '')
     futil.add_handler(undo_group_cmd_def.commandCreated, _undo_group_command_created, local_handlers=local_handlers)
+    # FORGE:ENDIF
 
 
 def stop():
@@ -183,12 +191,16 @@ def stop():
     if command_definition:
         command_definition.deleteMe()
 
+    # FORGE:IF groupedUndo
     undo_group_cmd_def = ui.commandDefinitions.itemById(config.UNDO_GROUP_CMD_ID)
     if undo_group_cmd_def:
         undo_group_cmd_def.deleteMe()
+    # FORGE:ENDIF
 
+    # FORGE:IF previewGenerate
     global _preview_occurrence_token
     _preview_occurrence_token = None
+    # FORGE:ENDIF
 
     palette = ui.palettes.itemById(config.PALETTE_ID)
     if palette:
@@ -206,6 +218,7 @@ def command_created(args: adsk.core.CommandCreatedEventArgs):
     futil.add_handler(args.command.execute, lambda _: open_palette(), local_handlers=local_handlers)
 
 
+# FORGE:IF groupedUndo
 # ------------------------------------------------------------------------------
 # Grouped undo. Fusion has no Revit-style Design.startTransactionGroup() API
 # for scripts/add-ins -- the documented way to collapse several API calls
@@ -239,6 +252,7 @@ def _run_grouped(work, name: str):
     cmd_def = ui.commandDefinitions.itemById(config.UNDO_GROUP_CMD_ID)
     cmd_def.name = name
     cmd_def.execute()
+# FORGE:ENDIF
 
 
 # ------------------------------------------------------------------------------
@@ -279,6 +293,7 @@ def _send(palette: adsk.core.Palette, action: str, payload: dict):
     palette.sendInfoToHTML(action, json.dumps(payload))
 
 
+# FORGE:IF previewGenerate
 def _ensure_safe_to_mutate():
     activeCmd = ui.activeCommand
     if activeCmd and activeCmd != 'SelectCommand':
@@ -314,8 +329,10 @@ def clear_preview():
             for occurrence in entity:
                 occurrence.deleteMe()
     _preview_occurrence_token = None
+# FORGE:ENDIF
 
 
+# FORGE:IF configManager
 # ------------------------------------------------------------------------------
 # Config manager (named presets, e.g. "Save As...")
 # ------------------------------------------------------------------------------
@@ -389,6 +406,7 @@ def _send_config_list(palette: adsk.core.Palette, tab: str):
         'configs': _list_configs(tab),
         'activeConfig': _get_active_config_name(tab),
     })
+# FORGE:ENDIF
 
 
 # ------------------------------------------------------------------------------
@@ -410,18 +428,27 @@ class PaletteHtmlEventHandler(adsk.core.HTMLEventHandler):
                 for t in DEFAULTS_BY_TAB:
                     _send(palette, 'set_state', {
                         'tab': t,
+                        # FORGE:IF configManager
                         'form': _get_tab_form(t),
+                        # FORGE:ELSE
+                        'form': dict(DEFAULTS_BY_TAB[t]),
+                        # FORGE:ENDIF
                         'source': 'defaults',
                     })
+                    # FORGE:IF configManager
                     _send_config_list(palette, t)
+                    # FORGE:ENDIF
+                # FORGE:IF themeDesigner
                 _send(palette, 'set_state', {
                     'tab': 'theme',
                     'form': _load_theme(),
                     'importedThemes': appConfig.load_imported_themes(),
                     'source': 'defaults',
                 })
+                # FORGE:ENDIF
                 _send(palette, 'init_data', {'version': config.ADDIN_VERSION})
 
+            # FORGE:IF themeDesigner
             elif action == 'update_theme':
                 _save_theme(form)
 
@@ -446,6 +473,7 @@ class PaletteHtmlEventHandler(adsk.core.HTMLEventHandler):
 
             elif action == 'import_theme':
                 self._handle_import_theme(palette, data.get('file_type'))
+            # FORGE:ENDIF
 
             elif action == 'validate':
                 result = VALIDATE_BY_TAB[tab](form)
@@ -456,6 +484,7 @@ class PaletteHtmlEventHandler(adsk.core.HTMLEventHandler):
                     'computed': result['computed'],
                 })
 
+            # FORGE:IF previewGenerate
             elif action == 'update_preview':
                 self._handle_update_preview(palette, tab, form)
 
@@ -464,7 +493,9 @@ class PaletteHtmlEventHandler(adsk.core.HTMLEventHandler):
 
             elif action == 'generate':
                 self._handle_generate(palette, tab, form)
+            # FORGE:ENDIF
 
+            # FORGE:IF configManager
             elif action == 'save_config_as':
                 self._handle_save_as(palette, tab, form, data.get('name'))
 
@@ -485,10 +516,12 @@ class PaletteHtmlEventHandler(adsk.core.HTMLEventHandler):
                     'source': 'factory_reset',
                 })
                 _send_config_list(palette, tab)
+            # FORGE:ENDIF
 
         except Exception:
             app.log(f'{config.CMD_NAME} PaletteHtmlEventHandler failed:\n{traceback.format_exc()}')
 
+    # FORGE:IF themeDesigner
     def _handle_export_theme(self, palette, file_type, themeId, themeVars, fontFamily, fontSize, content, default_name):
         try:
             dialog = ui.createFileDialog()
@@ -527,7 +560,9 @@ class PaletteHtmlEventHandler(adsk.core.HTMLEventHandler):
         except Exception:
             app.log(f'{config.CMD_NAME} theme import failed:\n{traceback.format_exc()}')
             _send(palette, 'notification', {'type': 'error', 'message': 'Failed to import theme'})
+    # FORGE:ENDIF
 
+    # FORGE:IF configManager
     def _handle_save_as(self, palette, tab, form, rawName):
         try:
             name = _sanitize_config_name(rawName)
@@ -571,7 +606,9 @@ class PaletteHtmlEventHandler(adsk.core.HTMLEventHandler):
             _set_active_config_name(tab, None)
         _send_config_list(palette, tab)
         _send(palette, 'notification', {'type': 'success', 'message': f'Deleted "{name}"'})
+    # FORGE:ENDIF
 
+    # FORGE:IF previewGenerate
     def _handle_clear_preview(self, palette, tab):
         if not has_preview():
             _send(palette, 'preview_status', {'tab': tab, 'active': False})
@@ -642,6 +679,7 @@ class PaletteHtmlEventHandler(adsk.core.HTMLEventHandler):
                 _send(palette, 'notification', {'type': 'error', 'message': getErrorMessage()})
 
         _run_grouped(work, f'{config.ADDIN_NAME} Generate')
+    # FORGE:ENDIF
 
 
 class PaletteCloseHandler(adsk.core.UserInterfaceGeneralEventHandler):

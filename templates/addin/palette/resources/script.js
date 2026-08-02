@@ -48,11 +48,17 @@ window.fusionJavaScriptHandler = {
       const data = typeof dataStr === 'string' ? JSON.parse(dataStr) : dataStr;
       switch (action) {
         case 'set_state': onSetState(data); break;
+        // FORGE:IF configManager
         case 'config_list': onConfigList(data); break;
+        // FORGE:ENDIF
         case 'validation_result': onValidationResult(data); break;
+        // FORGE:IF previewGenerate
         case 'preview_status': onPreviewStatus(data); break;
+        // FORGE:ENDIF
         case 'notification': showNotification(data); break;
+        // FORGE:IF themeDesigner
         case 'theme_imported': onThemeImported(data); break;
+        // FORGE:ENDIF
         case 'init_data': onInitData(data); break;
       }
     } catch (e) {
@@ -72,6 +78,7 @@ function onInitData(data) {
 
 function onSetState(data) {
   const tab = data.tab;
+  // FORGE:IF themeDesigner
   if (tab === 'theme') {
     if (data.importedThemes) mergeImportedThemes(data.importedThemes);
     state.forms.theme = data.form;
@@ -80,15 +87,20 @@ function onSetState(data) {
     applyFontOverrides(data.form.fontFamily, data.form.fontSize);
     return;
   }
+  // FORGE:ENDIF
   state.forms[tab] = data.form;
   writeFormToDom(tab, data.form);
+  // FORGE:IF configManager
   renderConfigStatus(tab);
+  // FORGE:ENDIF
 }
 
+// FORGE:IF configManager
 function onConfigList(data) {
   state.configs[data.tab] = { configs: data.configs, activeConfig: data.activeConfig };
   renderConfigStatus(data.tab);
 }
+// FORGE:ENDIF
 
 function onValidationResult(data) {
   document.querySelectorAll(`#tab-${data.tab} .field-error`).forEach(el => (el.textContent = ''));
@@ -98,10 +110,12 @@ function onValidationResult(data) {
   });
 }
 
+// FORGE:IF previewGenerate
 function onPreviewStatus(data) {
   const btn = document.querySelector(`.clear-preview-button[data-tab="${data.tab}"]`);
   if (btn) btn.disabled = !data.active;
 }
+// FORGE:ENDIF
 
 // --------------------------------------------------------------------------
 // Generic form <-> DOM helpers. Every field uses id="{tab}.{fieldName}".
@@ -165,6 +179,7 @@ function showNotification(data) {
 // --------------------------------------------------------------------------
 // Config manager (Load/Delete/Save As/Update Current/Factory Reset)
 // --------------------------------------------------------------------------
+// FORGE:IF configManager
 function renderConfigStatus(tab) {
   const el = document.getElementById(`${tab}-config-active`);
   const updateBtn = document.getElementById(`${tab}-config-update`);
@@ -192,32 +207,39 @@ async function handleConfigAction(action, tab) {
     }
   }
 }
+// FORGE:ENDIF
 
 // --------------------------------------------------------------------------
 // Preview / Generate / Clear Preview / Factory Reset button dispatch
 // --------------------------------------------------------------------------
 document.addEventListener('click', (e) => {
+  // FORGE:IF configManager
   const configBtn = e.target.closest('button[data-config-action]');
   if (configBtn) {
     handleConfigAction(configBtn.dataset.configAction, configBtn.dataset.tab);
     return;
   }
+  // FORGE:ENDIF
 
   const actionBtn = e.target.closest('button[data-action]');
   if (!actionBtn) return;
   const action = actionBtn.dataset.action;
   const tab = actionBtn.dataset.tab;
 
+  // FORGE:IF configManager
   if (action === 'factory_reset') {
     showConfirmModal('Factory Reset', 'Reset this tab back to its built-in defaults?').then(ok => {
       if (ok) sendToFusion('factory_reset', { tab: tab });
     });
     return;
   }
+  // FORGE:ENDIF
 
+  // FORGE:IF previewGenerate
   if (action === 'update_preview' || action === 'generate' || action === 'clear_preview') {
     sendToFusion(action, { tab: tab, form: readFormFromDom(tab) });
   }
+  // FORGE:ENDIF
 });
 
 document.addEventListener('input', (e) => {
@@ -227,6 +249,7 @@ document.addEventListener('input', (e) => {
 
 const DEFAULTS_TABS = new Set(['main']);
 
+// FORGE:IF themeDesigner
 // ==========================================================================
 // Theme system
 // ==========================================================================
@@ -462,6 +485,7 @@ const DEFAULT_THEME_FORM = {
   fontFamily: '-apple-system, "Segoe UI", Helvetica, Arial, sans-serif',
   fontSize: 12,
 };
+// FORGE:ENDIF
 
 // ==========================================================================
 // Modal (Promise-based confirm/prompt/picker; no native confirm()/prompt())
@@ -551,11 +575,13 @@ document.querySelectorAll('.tab-button').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
+// FORGE:IF themeDesigner
 if (window.matchMedia) {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     const select = document.getElementById('theme.name');
     if (select && select.value === 'System') applyTheme('System');
   });
 }
+// FORGE:ENDIF
 
 requestInitData();

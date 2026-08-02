@@ -46,6 +46,7 @@
   --status-info-text: #1a56db;
 }
 
+/* FORGE:IF themeDesigner */
 :root[data-theme="Dark"] {
   --bg-body: #1e1e1e;
   --text-main: #f2f2f2;
@@ -159,6 +160,7 @@
   --status-info-bg: #e2e9f5;
   --status-info-text: #35538a;
 }
+/* FORGE:ENDIF */
 
 /* ==========================================================================
    Structure
