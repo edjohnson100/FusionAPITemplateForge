@@ -1,0 +1,2 @@
+# Enforce LF (Unix) line endings for all text files on commit
+* text=auto eol=lf

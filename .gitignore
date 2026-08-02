@@ -1,0 +1,25 @@
+# ----------------------
+# OS junk
+# ----------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ----------------------
+# Editor
+# ----------------------
+.vscode/
+
+# ----------------------
+# Claude Code (AI assistant local files)
+# ----------------------
+.claude/
+CLAUDE.md
+
+# ----------------------
+# Build/output
+# ----------------------
+*.zip
