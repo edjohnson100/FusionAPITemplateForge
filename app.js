@@ -134,7 +134,7 @@
         // Add-in, all tiers
         add(`${root}.py`, 'addin/AddInName.py');
         add(`${root}.manifest`, 'addin/manifest.json');
-        add(`${root}AppIcon.png`, 'addin/icons/128x128.png', true);
+        add(`${root}AppIcon.png`, 'addin/icons/512x512.png', true);
         add('config.py', 'addin/config.py');
         add('lib/__init__.py', 'addin/lib/__init__.py');
         add('lib/fusionAddInUtils/__init__.py', 'addin/lib/fusionAddInUtils/__init__.py');

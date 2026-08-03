@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-This repo started from `_Templates/Fusion_Addins`, Ed's starter template for a Fusion 360 add-in (Python) with a persistent, dockable HTML palette UI (`adsk.core.Palettes`). It follows the same structural conventions as the rest of his Fusion add-in fleet (GridfinityGeneratorPlus, ChangelogSidecar, LiveConfig, LiveUtilities, FingerJointsLive, etc.).
+This repo started from `_Templates/Fusion_Addins`, Ed's starter template for a Fusion add-in (Python) with a persistent, dockable HTML palette UI (`adsk.core.Palettes`). It follows the same structural conventions as the rest of his Fusion add-in fleet (GridfinityGeneratorPlus, ChangelogSidecar, LiveConfig, LiveUtilities, FingerJointsLive, etc.).
 
 **First things to do after copying this template into a new project folder:**
 1. Rename the project folder itself to the real add-in name (PascalCase, no spaces) — `config.py`'s `ADDIN_NAME` is derived from this folder name automatically, so nothing else needs editing for that.
@@ -14,22 +14,22 @@ This repo started from `_Templates/Fusion_Addins`, Ed's starter template for a F
 5. In `resources/<{{NAME}}>_Index.html`, replace the `<h2>` title text and the footer's add-in name/version line.
 6. Grep the tree for any leftover `{{NAME}}` strings you missed (there should be none left referencing the placeholder once the steps above are done).
 
-There is no build system, package manager, linter, or test suite — this only runs inside Fusion 360's embedded Python interpreter via the Fusion 360 add-in loader. There are no `requirements.txt`/`pyproject.toml`.
+There is no build system, package manager, linter, or test suite — this only runs inside Fusion's embedded Python interpreter via the Fusion add-in loader. There are no `requirements.txt`/`pyproject.toml`.
 
 ## Running / testing changes
 
-There is no CLI entry point or headless test runner — `adsk.core`/`adsk.fusion` are Fusion 360's runtime API modules and only exist inside the Fusion 360 process. To verify a change:
+There is no CLI entry point or headless test runner — `adsk.core`/`adsk.fusion` are Fusion's runtime API modules and only exist inside the Fusion process. To verify a change:
 
-1. Open Fusion 360 → Utilities → Add-Ins → Scripts and Add-Ins → add this folder as an add-in (or point Fusion at the `.manifest` file).
+1. Open Fusion → Utilities → Add-Ins → Scripts and Add-Ins → add this folder as an add-in (or point Fusion at the `.manifest` file).
 2. Run/reload the add-in, then use its toolbar button (Solid Create panel by default — see `config.py`'s `DEFAULT_PANEL_ID`) to open the palette and exercise the change interactively.
-3. Use `futil.log(...)` (see `lib/fusionAddInUtils/general_utils.py`) to write to the Fusion 360 Text Command window / console for debugging; toggle verbose logging via `config.DEBUG`.
+3. Use `futil.log(...)` (see `lib/fusionAddInUtils/general_utils.py`) to write to the Fusion Text Command window / console for debugging; toggle verbose logging via `config.DEBUG`.
 
 Since there's no automated test suite, manually exercise the changed inputs and confirm the result in Fusion's viewport/browser before considering a change done.
 
 ## Architecture
 
 ### Add-in bootstrap
-- `<{{NAME}}>.py` is the add-in entry point Fusion 360 calls (`run(context)`/`stop(context)`), delegating to `commands.start()`/`commands.stop()`.
+- `<{{NAME}}>.py` is the add-in entry point Fusion calls (`run(context)`/`stop(context)`), delegating to `commands.start()`/`commands.stop()`.
 - `commands/__init__.py` is the registry of top-level commands (currently just `PaletteCommand`).
 - `config.py` holds add-in-wide constants: `DEBUG`, `ADDIN_NAME` (folder-derived), `COMPANY_NAME`, workspace/panel IDs, `PALETTE_ID`/`CMD_ID`, and `ADDIN_VERSION` (read from the `.manifest` file at import time — never hardcode a version string elsewhere, this is the single source of truth).
 
