@@ -27,7 +27,7 @@
         versionLine: document.getElementById('app-version-line'),
     };
 
-    const featureIds = ['configManager', 'groupedUndo', 'previewGenerate', 'toolClip', 'vscode', 'readme', 'claudeMd'];
+    const featureIds = ['configManager', 'groupedUndo', 'previewGenerate', 'toolClip', 'vscode', 'readme', 'claudeMd', 'archiveGuide', 'archiveExtras'];
     const featureCheckbox = (id) => document.getElementById(`feat-${id}`);
     const featureLabel = (id) => document.getElementById(`feat-${id}-label`);
 
@@ -105,6 +105,19 @@
             toolClipCb.disabled = false;
             toolClipLabel.classList.remove('disabled');
         }
+
+        // Extras only make sense once the Archive/ folder itself is included.
+        const archiveGuideCb = featureCheckbox('archiveGuide');
+        const archiveExtrasCb = featureCheckbox('archiveExtras');
+        const archiveExtrasLabel = featureLabel('archiveExtras');
+        if (!archiveGuideCb.checked) {
+            archiveExtrasCb.checked = false;
+            archiveExtrasCb.disabled = true;
+            archiveExtrasLabel.classList.add('disabled');
+        } else {
+            archiveExtrasCb.disabled = false;
+            archiveExtrasLabel.classList.remove('disabled');
+        }
     }
 
     // ------------------------------------------------------------------
@@ -128,6 +141,15 @@
             if (s.features.readme) add('README.md', 'common/README_script.md');
             if (s.features.claudeMd) add('CLAUDE.md', 'common/CLAUDE_script.md');
             add('NEXT_STEPS.md', 'common/NEXT_STEPS_script.md');
+            if (s.features.archiveGuide) {
+                add('Archive/!Fusion_Scripts_Template_User_Guide.md', 'common/archive/script_guide.md');
+                if (s.features.archiveExtras) {
+                    add('Archive/!Dev_Notes.md', 'common/archive/script_dev_notes.md');
+                    add('Archive/!Next_Chat.md', 'common/archive/script_next_chat.md');
+                    add('Archive/!Release_Notes.md', 'common/archive/script_release_notes.md');
+                    add('Archive/Add-in_Scripts_Installation_Template.md', 'common/archive/install_template.md');
+                }
+            }
             return files;
         }
 
@@ -172,6 +194,16 @@
             if (s.features.claudeMd) add('CLAUDE.md', 'common/CLAUDE_addin_palette.md');
         }
 
+        if (s.features.archiveGuide) {
+            add('Archive/!Fusion_Addin_Template_User_Guide.md', 'common/archive/addin_guide.md');
+            if (s.features.archiveExtras) {
+                add('Archive/!Dev_Notes.md', 'common/archive/addin_dev_notes.md');
+                add('Archive/!Next_Chat.md', 'common/archive/addin_next_chat.md');
+                add('Archive/!Release_Notes.md', 'common/archive/addin_release_notes.md');
+                add('Archive/!Add-in_Scripts_Installation_Template.md', 'common/archive/install_template.md');
+            }
+        }
+
         return files;
     }
 
@@ -209,6 +241,7 @@
 
     function getFeatureFlags(s) {
         return {
+            palette: s.projectType === 'addin' && s.tier !== 'bare',
             themeDesigner: s.tier === 'theme',
             configManager: s.features.configManager,
             groupedUndo: s.features.groupedUndo,

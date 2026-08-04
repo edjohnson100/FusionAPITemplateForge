@@ -28,22 +28,28 @@ Desktop.ini
 # Lock files sometimes created during runtime
 *.lock
 
+# FORGE:IF palette 
 # ----------------------
 # 4. Per-Machine Add-in State
 # ----------------------
-# Palette geometry + active theme choice, and any custom/imported themes --
-# both per-machine, not deliberately shared content (unlike commandConfig/
-# named presets, which ARE tracked).
+# Palette geometry -- per-machine, not deliberately shared content (unlike
+# commandConfig/ named presets, which ARE tracked).
 config.json
+
+# FORGE:IF themeDesigner 
+# Active theme choice and any custom/imported themes -- also per-machine.
 imported_themes.json
+# FORGE:ENDIF 
 
-# Live palette config-manager state (which named preset is active, common
-# panel values if you add one) -- mutates on every edit, falls back to
-# hardcoded defaults in commands/PaletteCommand.py when absent.
+# FORGE:IF configManager 
+# Live config-manager state (which named preset is active) -- mutates on
+# every edit, falls back to hardcoded defaults in commands/PaletteCommand.py
+# when absent.
 commandConfig/ui_defaults.json
-commandConfig/common.json
 commandConfig/presets/
+# FORGE:ENDIF 
 
+# FORGE:ENDIF 
 # ----------------------
 # 5. Security & Local Settings
 # ----------------------
@@ -60,6 +66,7 @@ CLAUDE.md
 # ----------------------
 # 7. Other Misc Files
 # ----------------------
+# Personal reference notes, not for review.
 Archive/
 
 # Ignore compiled binaries just in case they slip into other folders
@@ -68,4 +75,3 @@ Archive/
 *.pkg
 *.dmg
 *.zip
-AGENTS.md

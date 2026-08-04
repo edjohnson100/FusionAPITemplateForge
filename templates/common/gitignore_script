@@ -22,3 +22,29 @@ Desktop.ini
 # ----------------------
 *.manifest.bak
 *.lock
+
+# ----------------------
+# Security & Local Settings
+# ----------------------
+.env
+.env.*
+!.env.example
+
+# ----------------------
+# Claude Code (AI assistant local files)
+# ----------------------
+.claude/
+CLAUDE.md
+
+# ----------------------
+# Other Misc Files
+# ----------------------
+# Personal reference notes, not for review.
+Archive/
+
+# Ignore compiled binaries just in case they slip into other folders
+*.exe
+*.msi
+*.pkg
+*.dmg
+*.zip
