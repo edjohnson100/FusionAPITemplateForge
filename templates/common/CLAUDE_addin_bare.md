@@ -6,7 +6,7 @@ There is no build system, package manager, or test suite -- this only runs insid
 
 ## Running / testing changes
 
-1. Open Fusion -> Utilities -> Add-Ins -> Scripts and Add-Ins -> add this folder as an add-in.
+1. Press `Shift + S` to open the Scripts and Add-Ins dialog, click the "+" icon next to the search box, choose "Script or add-in from device", and select this folder.
 2. Run/reload the add-in, then use its toolbar button (see `config.DEFAULT_PANEL_ID`) to exercise the change.
 3. Use `futil.log(...)` (see `lib/fusionAddInUtils/general_utils.py`) to write to the Text Command window; toggle verbose logging via `config.DEBUG`.
 

@@ -20,7 +20,7 @@ There is no build system, package manager, linter, or test suite — this only r
 
 There is no CLI entry point or headless test runner — `adsk.core`/`adsk.fusion` are Fusion's runtime API modules and only exist inside the Fusion process. To verify a change:
 
-1. Open Fusion → Utilities → Add-Ins → Scripts and Add-Ins → add this folder as an add-in (or point Fusion at the `.manifest` file).
+1. Press `Shift + S` to open the Scripts and Add-Ins dialog, click the "+" icon next to the search box, choose "Script or add-in from device", and select this folder (or point Fusion at the `.manifest` file).
 2. Run/reload the add-in, then use its toolbar button (Solid Create panel by default — see `config.py`'s `DEFAULT_PANEL_ID`) to open the palette and exercise the change interactively.
 3. Use `futil.log(...)` (see `lib/fusionAddInUtils/general_utils.py`) to write to the Fusion Text Command window / console for debugging; toggle verbose logging via `config.DEBUG`.
 

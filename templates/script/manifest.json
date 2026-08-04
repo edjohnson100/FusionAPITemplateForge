@@ -9,5 +9,5 @@
 	"version":	"{{VERSION}}",
 	"supportedOS":	"windows|mac",
 	"editEnabled":	true,
-	"iconFilename":	"{{NAME}}Icon.svg"
+	"iconFilename":	"{{NAME}}AppIcon.png"
 }

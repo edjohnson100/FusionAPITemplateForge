@@ -133,7 +133,7 @@
         if (s.projectType === 'script') {
             add(`${root}.py`, 'script/ScriptName.py');
             add(`${root}.manifest`, 'script/manifest.json');
-            add(`${root}Icon.svg`, 'script/ScriptIcon.svg', true);
+            add(`${root}AppIcon.png`, 'addin/icons/512x512.png', true);
             add('.gitignore', 'common/gitignore_script');
             add('.gitattributes', 'common/gitattributes');
             if (s.features.vscode) add('.vscode/launch.json', 'common/vscode_launch.json');
