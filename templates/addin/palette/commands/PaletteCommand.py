@@ -27,6 +27,9 @@ ui = app.userInterface
 WORKSPACE_ID = config.DEFAULT_WORKSPACE_ID
 PANEL_ID = config.DEFAULT_PANEL_ID
 COMMAND_BESIDE_ID = config.COMMAND_BESIDE_ID
+# FORGE:IF secondaryPanel
+SECONDARY_PANEL_ID = config.SECONDARY_PANEL_ID
+# FORGE:ENDIF
 
 RESOURCES_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'resources')
 ICON_FOLDER = os.path.join(RESOURCES_FOLDER, '')
@@ -167,6 +170,12 @@ def start():
     control = panel.controls.addCommand(cmd_def, COMMAND_BESIDE_ID, False)
     control.isPromoted = addinConfig['UI'].getboolean('is_promoted')
 
+    # FORGE:IF secondaryPanel
+    secondary_panel = workspace.toolbarPanels.itemById(SECONDARY_PANEL_ID)
+    secondary_control = secondary_panel.controls.addCommand(cmd_def, COMMAND_BESIDE_ID, False)
+    secondary_control.isPromoted = control.isPromoted
+    # FORGE:ENDIF
+
     # FORGE:IF groupedUndo
     # Hidden command definition used solely as a grouped-undo runner -- see
     # _run_grouped() below for why this exists.
@@ -188,6 +197,14 @@ def stop():
 
     if command_control:
         command_control.deleteMe()
+
+    # FORGE:IF secondaryPanel
+    secondary_panel = workspace.toolbarPanels.itemById(SECONDARY_PANEL_ID)
+    secondary_control = secondary_panel.controls.itemById(config.CMD_ID)
+    if secondary_control:
+        secondary_control.deleteMe()
+    # FORGE:ENDIF
+
     if command_definition:
         command_definition.deleteMe()
 

@@ -8,7 +8,7 @@ Don't make the assistant interview you. Explain the project like you would to a 
 
 Two things are worth deciding *before* that conversation, since they're cheap to state up front and annoying to redo mid-build:
 
-- **Toolbar placement** — which panel/workspace the button lives in (`config.py`'s `DEFAULT_WORKSPACE_ID`/`DEFAULT_PANEL_ID`, currently `FusionSolidEnvironment`/`SolidCreatePanel`). Tell the assistant where you want it if it's not the default.
+- **Toolbar placement** — which panel/workspace the button lives in (`config.py`'s `DEFAULT_WORKSPACE_ID`/`DEFAULT_PANEL_ID`, currently `FusionSolidEnvironment`/`{{PANEL_ID}}`). Tell the assistant where you want it if it's not the default.
 - **Tab shape** — does the feature need one field group or several? If you already know, say so; if not, let the assistant propose a Main-tab layout from your description and iterate on it rather than front-loading the question.
 
 Everything else — which stub bits to delete, whether you need a Common Settings collapsible, single-tab vs multi-tab — is a judgment call the assistant can make from your description and the conventions already documented in `CLAUDE.md` (if you included it). It doesn't need a formal Q&A pass for that; just push back if something looks wrong once you see the plan.

@@ -8,7 +8,7 @@ ui = app.userInterface
 
 # TODO *** Specify the command identity information. ***
 CMD_ID = f'{config.COMPANY_NAME}_{config.ADDIN_NAME}_cmdExample'
-CMD_NAME = 'Example Command'
+CMD_NAME = config.ADDIN_NAME
 CMD_DESCRIPTION = 'TODO: replace this with your add-in\'s real command.'
 
 # Specify that the command will be promoted to the panel.
@@ -32,6 +32,12 @@ def start():
     control = panel.controls.addCommand(cmd_def, config.COMMAND_BESIDE_ID, False)
     control.isPromoted = IS_PROMOTED
 
+    # FORGE:IF secondaryPanel
+    secondary_panel = workspace.toolbarPanels.itemById(config.SECONDARY_PANEL_ID)
+    secondary_control = secondary_panel.controls.addCommand(cmd_def, config.COMMAND_BESIDE_ID, False)
+    secondary_control.isPromoted = IS_PROMOTED
+    # FORGE:ENDIF
+
 
 def stop():
     workspace = ui.workspaces.itemById(config.DEFAULT_WORKSPACE_ID)
@@ -41,6 +47,14 @@ def stop():
 
     if command_control:
         command_control.deleteMe()
+
+    # FORGE:IF secondaryPanel
+    secondary_panel = workspace.toolbarPanels.itemById(config.SECONDARY_PANEL_ID)
+    secondary_control = secondary_panel.controls.itemById(CMD_ID)
+    if secondary_control:
+        secondary_control.deleteMe()
+    # FORGE:ENDIF
+
     if command_def:
         command_def.deleteMe()
 

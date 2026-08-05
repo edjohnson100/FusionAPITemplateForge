@@ -22,8 +22,13 @@ COMPANY_NAME = 'YourCompany'  # TODO: replace with your own company/author tag
 # Workspace / Panel Placement
 # ==============================================================================
 DEFAULT_WORKSPACE_ID = 'FusionSolidEnvironment'  # Design workspace
-DEFAULT_PANEL_ID = 'SolidCreatePanel'
+DEFAULT_PANEL_ID = '{{PANEL_ID}}'
 COMMAND_BESIDE_ID = 'ScriptsManagerCommand'
+
+# FORGE:IF secondaryPanel
+# Duplicates the command button into a second panel/tab as well.
+SECONDARY_PANEL_ID = '{{SECONDARY_PANEL_ID}}'
+# FORGE:ENDIF
 
 # ==============================================================================
 # Resource Paths

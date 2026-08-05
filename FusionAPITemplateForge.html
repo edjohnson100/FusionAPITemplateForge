@@ -63,7 +63,7 @@
 
                 <div class="field-row">
                     <label for="input-version">Initial Version</label>
-                    <input type="text" id="input-version" value="1.0.0.0" autocomplete="off">
+                    <input type="text" id="input-version" value="1.0.0" autocomplete="off">
                 </div>
 
                 <div class="field-row">
@@ -94,6 +94,32 @@
                     </label>
                 </div>
                 <div class="note" id="tier-note" style="display:none;"></div>
+            </div>
+
+            <div class="panel" id="placement-panel">
+                <h3>Command Button Menu Location</h3>
+                <span class="hint">Where the add-in's toolbar button lives, within the Design workspace.</span>
+                <div class="field-row">
+                    <label for="input-panel-tab">Tab</label>
+                    <select id="input-panel-tab"></select>
+                </div>
+                <div class="field-row">
+                    <label for="input-panel-id">Panel</label>
+                    <select id="input-panel-id"></select>
+                </div>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="input-secondary-enabled"><span><span class="option-title">Add a second location</span><span class="option-sub">Duplicates the button into another Tab/Panel -- e.g. the Sketch panel, so it's also reachable while actively editing a sketch</span></span></label>
+                </div>
+                <div id="secondary-placement-fields" style="display:none;">
+                    <div class="field-row">
+                        <label for="input-panel-tab-2">Tab</label>
+                        <select id="input-panel-tab-2"></select>
+                    </div>
+                    <div class="field-row">
+                        <label for="input-panel-id-2">Panel</label>
+                        <select id="input-panel-id-2"></select>
+                    </div>
+                </div>
             </div>
 
             <div class="panel">

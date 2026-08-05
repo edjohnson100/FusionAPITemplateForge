@@ -2,8 +2,89 @@
     'use strict';
 
     const TEMPLATES_ROOT = 'templates/';
-    const APP_VERSION = '1.1.0';
+    const APP_VERSION = '1.2.0';
     const APP_RELEASE_DATE = 'August 2026';
+
+    // ------------------------------------------------------------------
+    // Command button toolbar placement -- Design workspace (FusionSolidEnvironment)
+    // only, for now. Panel IDs verified against a real Fusion UI dump
+    // (Archive/Fusion_Workspace_Panels.xml), not guessed -- wrong IDs make
+    // config.DEFAULT_PANEL_ID resolve to None in the generated add-in and
+    // crash on startup. Construct/Inspect/Insert/Select are genuinely the
+    // same panel ID shared across the Solid and Surface tabs in Fusion's own
+    // UI, not a shortcut taken here.
+    // ------------------------------------------------------------------
+    const PANEL_LOCATIONS = {
+        solid: {
+            label: 'Solid',
+            panels: [
+                { label: 'Create', id: 'SolidCreatePanel' },
+                { label: 'Modify', id: 'SolidModifyPanel' },
+                { label: 'Assemble', id: 'AssemblePanel' },
+                { label: 'Configure', id: 'ConfigurePanel' },
+                { label: 'Construct', id: 'ConstructionPanel' },
+                { label: 'Inspect', id: 'InspectPanel' },
+                { label: 'Insert', id: 'InsertPanel' },
+                { label: 'Select', id: 'SelectPanel' },
+                { label: 'Project Salvador (requires the beta preference enabled)', id: 'Autodesk_ProjectSalvador_panel_id' },
+            ],
+        },
+        surface: {
+            label: 'Surface',
+            panels: [
+                { label: 'Create', id: 'SurfaceCreatePanel' },
+                { label: 'Modify', id: 'SurfaceModifyPanel' },
+                { label: 'Construct', id: 'ConstructionPanel' },
+                { label: 'Inspect', id: 'InspectPanel' },
+                { label: 'Insert', id: 'InsertPanel' },
+                { label: 'Select', id: 'SelectPanel' },
+            ],
+        },
+        mesh: {
+            label: 'Mesh',
+            panels: [
+                { label: 'Create', id: 'ParaMeshCreatePanel' },
+                { label: 'Prepare', id: 'ParaMeshPreparePanel' },
+                { label: 'Modify', id: 'ParaMeshModifyPanel' },
+                { label: 'Construct', id: 'ConstructionPanel' },
+                { label: 'Inspect', id: 'InspectPanel' },
+                { label: 'Insert', id: 'InsertPanel' },
+                { label: 'Select', id: 'ParaMeshSelectPanel' },
+                { label: 'Export', id: 'ParaMeshExportPanel' },
+            ],
+        },
+        utilities: {
+            label: 'Utilities',
+            panels: [
+                { label: 'Add-ins', id: 'SolidScriptsAddinsPanel' },
+                { label: 'Utility', id: 'UtilityPanel' },
+                { label: 'Make', id: 'MakePanel' },
+                { label: 'Nest', id: 'NESTPanel' },
+                { label: 'Inspect', id: 'ToolsInspectPanel' },
+                { label: 'Create PMI', id: 'Annotate3DPanel' },
+                { label: 'Select', id: 'SelectPanel' },
+            ],
+        },
+        // Not a persistent ribbon tab -- Fusion swaps the whole ribbon to this
+        // one contextual tab while actively creating/editing a sketch,
+        // regardless of which of the tabs above you started from. Confirmed
+        // as a single shared occurrence (not per-base-tab) in
+        // Archive/Fusion_Workspace_Panels.xml.
+        sketch: {
+            label: 'Sketch (active while editing a sketch)',
+            panels: [
+                { label: 'Create', id: 'SketchCreatePanel' },
+                { label: 'Modify', id: 'SketchModifyPanel' },
+                { label: 'Constraints', id: 'SketchConstraintsPanel' },
+                { label: 'Configure', id: 'ConfigurePanel' },
+                { label: 'Inspect', id: 'InspectPanel' },
+                { label: 'Insert', id: 'InsertPanel' },
+                { label: 'Select', id: 'SelectPanel' },
+            ],
+        },
+    };
+    const DEFAULT_PANEL_TAB = 'solid';
+    const DEFAULT_SECONDARY_PANEL_TAB = 'sketch';
 
     const els = {
         projectType: () => document.querySelector('input[name="projectType"]:checked').value,
@@ -18,6 +99,13 @@
         license: document.getElementById('input-license'),
         tierPanel: document.getElementById('tier-panel'),
         tierNote: document.getElementById('tier-note'),
+        placementPanel: document.getElementById('placement-panel'),
+        panelTab: document.getElementById('input-panel-tab'),
+        panelId: document.getElementById('input-panel-id'),
+        secondaryEnabled: document.getElementById('input-secondary-enabled'),
+        secondaryFields: document.getElementById('secondary-placement-fields'),
+        panelTab2: document.getElementById('input-panel-tab-2'),
+        panelId2: document.getElementById('input-panel-id-2'),
         bundledNote: document.getElementById('bundled-note'),
         fileTree: document.getElementById('file-tree'),
         generateBtn: document.getElementById('generate-btn'),
@@ -43,14 +131,45 @@
             author: els.author.value.trim(),
             company: els.company.value.trim() || 'YourCompany',
             description: els.description.value.trim() || 'TODO: describe what this does.',
-            version: els.version.value.trim() || '1.0.0.0',
+            version: els.version.value.trim() || '1.0.0',
             license: els.license.value,
+            panelId: els.panelId.value || PANEL_LOCATIONS[DEFAULT_PANEL_TAB].panels[0].id,
+            secondaryEnabled: els.secondaryEnabled.checked,
+            secondaryPanelId: els.panelId2.value || PANEL_LOCATIONS[DEFAULT_SECONDARY_PANEL_TAB].panels[0].id,
             features,
         };
     }
 
     function isValidName(name) {
         return /^[A-Z][A-Za-z0-9]*$/.test(name);
+    }
+
+    // ------------------------------------------------------------------
+    // Command button placement: Tab select drives which panels are offered.
+    // Both the primary and secondary location use this same pair of
+    // functions against their own select elements/default tab, so they stay
+    // in sync with PANEL_LOCATIONS automatically.
+    // ------------------------------------------------------------------
+    function populateTabOptions(tabSelect, defaultTab) {
+        tabSelect.innerHTML = '';
+        Object.keys(PANEL_LOCATIONS).forEach((key) => {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = PANEL_LOCATIONS[key].label;
+            tabSelect.appendChild(opt);
+        });
+        tabSelect.value = defaultTab;
+    }
+
+    function populatePanelOptions(tabSelect, panelSelect, defaultTab) {
+        const tab = PANEL_LOCATIONS[tabSelect.value] || PANEL_LOCATIONS[defaultTab];
+        panelSelect.innerHTML = '';
+        tab.panels.forEach((panel) => {
+            const opt = document.createElement('option');
+            opt.value = panel.id;
+            opt.textContent = panel.label;
+            panelSelect.appendChild(opt);
+        });
     }
 
     // ------------------------------------------------------------------
@@ -66,6 +185,8 @@
         els.tierPanel.style.display = isAddin ? '' : 'none';
         els.companyRow.style.display = isAddin ? '' : 'none';
         els.tierNote.style.display = 'none';
+        els.placementPanel.style.display = isAddin ? '' : 'none';
+        els.secondaryFields.style.display = (isAddin && els.secondaryEnabled.checked) ? '' : 'none';
 
         const paletteOnlyFeatures = ['configManager', 'groupedUndo', 'previewGenerate'];
         paletteOnlyFeatures.forEach((id) => {
@@ -246,6 +367,7 @@
             configManager: s.features.configManager,
             groupedUndo: s.features.groupedUndo,
             previewGenerate: s.features.previewGenerate,
+            secondaryPanel: s.secondaryEnabled,
         };
     }
 
@@ -257,6 +379,8 @@
             .replace(/\{\{COMPANY\}\}/g, s.company)
             .replace(/\{\{DESCRIPTION\}\}/g, s.description)
             .replace(/\{\{VERSION\}\}/g, s.version)
+            .replace(/\{\{PANEL_ID\}\}/g, s.panelId)
+            .replace(/\{\{SECONDARY_PANEL_ID\}\}/g, s.secondaryPanelId)
             .replace(/\{\{GUID\}\}/g, guid)
             .replace(/\{\{YEAR\}\}/g, String(year))
             .replace(/AddInName/g, s.name || 'AddInName')
@@ -399,10 +523,19 @@
     document.querySelectorAll('input[name="tier"]').forEach((el) => el.addEventListener('change', () => { updateGating(); refreshPreview(); }));
     [els.name, els.author, els.company, els.description, els.version, els.license].forEach((el) => el.addEventListener('input', refreshPreview));
     featureIds.forEach((id) => featureCheckbox(id).addEventListener('change', () => { updateGating(); refreshPreview(); }));
+    els.panelTab.addEventListener('change', () => { populatePanelOptions(els.panelTab, els.panelId, DEFAULT_PANEL_TAB); refreshPreview(); });
+    els.panelId.addEventListener('change', refreshPreview);
+    els.secondaryEnabled.addEventListener('change', () => { updateGating(); refreshPreview(); });
+    els.panelTab2.addEventListener('change', () => { populatePanelOptions(els.panelTab2, els.panelId2, DEFAULT_SECONDARY_PANEL_TAB); refreshPreview(); });
+    els.panelId2.addEventListener('change', refreshPreview);
     els.generateBtn.addEventListener('click', generate);
 
     initAppTheme();
     els.versionLine.textContent = `v${APP_VERSION}, ${APP_RELEASE_DATE}`;
+    populateTabOptions(els.panelTab, DEFAULT_PANEL_TAB);
+    populatePanelOptions(els.panelTab, els.panelId, DEFAULT_PANEL_TAB);
+    populateTabOptions(els.panelTab2, DEFAULT_SECONDARY_PANEL_TAB);
+    populatePanelOptions(els.panelTab2, els.panelId2, DEFAULT_SECONDARY_PANEL_TAB);
     updateGating();
     refreshPreview();
 })();
